@@ -1,0 +1,79 @@
+# TruthLens AI — Centralized Training & Hyperparameter Configuration
+# ===================================================================
+
+seed: 42
+
+paths:
+  data_dir: "datasets"
+  models_dir: "models/v2"
+  storage_dir: "storage"
+  outputs_dir: "outputs"
+  reports_dir: "reports"
+  experiments_dir: "experiments"
+  
+datasets:
+  text_cleaned: "datasets/Dataset_TExt_cleaned.csv"
+  politifact_real: "datasets/politifact_real.csv"
+  politifact_fake: "datasets/politifact_fake.csv"
+  gossipcop_real: "datasets/gossipcop_real.csv"
+  gossipcop_fake: "datasets/gossipcop_fake.csv"
+  train_split: "datasets/train.csv"
+  val_split: "datasets/validation.csv"
+  test_split: "datasets/test.csv"
+  image_dir: "datasets/images"
+  val_image_dir: "datasets/validation_images"
+  test_image_dir: "datasets/test_images"
+
+text_model:
+  base_model: "roberta-base"
+  embedding_dim: 768
+  max_length: 128
+  batch_size: 32
+  learning_rate: 0.001
+  classifier_type: "logistic_regression"  # Platt calibrated classification head
+  max_iter: 1000
+  class_weight: "balanced"
+
+image_model:
+  base_model: "google/vit-base-patch16-224"
+  embedding_dim: 768
+  batch_size: 16
+  learning_rate: 0.001
+  classifier_type: "logistic_regression"
+  max_iter: 1000
+  class_weight: "balanced"
+
+audio_model:
+  transcription_model: "openai/whisper-tiny"
+  sample_rate: 16000
+  acoustic_features: ["mfcc", "spectral_centroid", "zero_crossing_rate"]
+  authenticity_status: "experimental"  # Deepfake authenticity unestablished without labeled audio data
+
+fusion_model:
+  classifier: "xgboost"
+  n_estimators: 150
+  max_depth: 4
+  learning_rate: 0.05
+  subsample: 0.8
+  colsample_bytree: 0.8
+  threshold_tuning_grid: [0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65]
+  default_threshold: 0.50
+  uncertain_margin: 0.05  # Within [0.45, 0.55] with low agreement -> UNCERTAIN
+
+apis:
+  google_fact_check:
+    enabled: true
+    timeout_seconds: 5
+  gdelt_news:
+    enabled: true
+    timeout_seconds: 5
+    max_records: 5
+  google_safe_browsing:
+    enabled: true
+    timeout_seconds: 5
+  mediawiki_extracts:
+    enabled: true
+    timeout_seconds: 5
+  gemini_api:
+    model: "gemini-2.5-flash"
+    temperature: 0.1
